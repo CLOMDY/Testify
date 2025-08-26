@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Manage Exams | Online Exam Portal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">Manage Exams</a>
+    <a href="{{ url_for('auth.logout') }}" class="btn btn-danger">Logout</a>
+  </div>
+</nav>
+
+<div class="container mt-4">
+  <h3>Create New Exam</h3>
+  <form method="POST" action="{{ url_for('admin.manage_exams') }}">
+
+
+    <!-- Exam Title -->
+    <div class="mb-4">
+      <label class="form-label"><strong>Exam Title</strong></label>
+      <input type="text" name="exam_title" class="form-control" placeholder="Enter exam title" required>
+    </div>
+
+    <!-- Questions -->
+    {% for i in range(1, 31) %}
+    <div class="card mb-4 shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">Question {{ i }}</h5>
+        
+        <!-- Question Text -->
+        <div class="mb-3">
+          <textarea name="question_{{ i }}" class="form-control" placeholder="Enter question text" rows="2" required></textarea>
+        </div>
+
+        <!-- Options -->
+        <div class="row g-2">
+          <div class="col-md-6">
+            <input type="text" name="optionA_{{ i }}" class="form-control" placeholder="Option A" required>
+          </div>
+          <div class="col-md-6">
+            <input type="text" name="optionB_{{ i }}" class="form-control" placeholder="Option B" required>
+          </div>
+          <div class="col-md-6">
+            <input type="text" name="optionC_{{ i }}" class="form-control" placeholder="Option C" required>
+          </div>
+          <div class="col-md-6">
+            <input type="text" name="optionD_{{ i }}" class="form-control" placeholder="Option D" required>
+          </div>
+        </div>
+
+        <!-- Correct Answer -->
+        <div class="mt-3">
+          <label class="form-label">Correct Answer</label>
+          <select name="correct_{{ i }}" class="form-select" required>
+            <option value="">-- Select Correct Option --</option>
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
+            <option value="D">D</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+    <!-- Submit -->
+    <div class="text-center mb-5">
+      <button type="submit" class="btn btn-success btn-lg">Save Exam</button>
+    </div>
+  </form>
+</div>
+
+</body>
+</html>
