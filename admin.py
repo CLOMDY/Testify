@@ -43,7 +43,7 @@ def manage_exams():
         db.session.commit()
 
         # Add questions
-        for i in range(1, 31):
+        for i in range(1, 2):
             q_text = request.form.get(f"question_{i}")
             optA = request.form.get(f"optionA_{i}")
             optB = request.form.get(f"optionB_{i}")
