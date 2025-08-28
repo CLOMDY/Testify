@@ -1,7 +1,6 @@
 from extensions import db
 from flask_login import UserMixin
 
-
 class User(db.Model, UserMixin):
     __tablename__ = "users"
 
@@ -11,4 +10,7 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(200), nullable=False)
     role = db.Column(db.String(20), nullable=False)  # 'admin' or 'student'
 
-    results = db.relationship("Result", backref="student", lazy=True)
+    # ✅ Delete results (and their answers) when user is deleted
+    results = db.relationship(
+        "Result", backref="student", cascade="all, delete-orphan", lazy=True
+    )

@@ -1,6 +1,5 @@
 from extensions import db
 
-
 class Result(db.Model):
     __tablename__ = "results"
 
@@ -10,4 +9,7 @@ class Result(db.Model):
     score = db.Column(db.Integer, nullable=False)
     percentile = db.Column(db.Float, nullable=True)
 
-    answers = db.relationship("Answer", backref="result", lazy=True)
+    # ✅ Delete answers when result is deleted
+    answers = db.relationship(
+        "Answer", backref="result", cascade="all, delete-orphan", lazy=True
+    )
