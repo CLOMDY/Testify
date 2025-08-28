@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from flask_login import login_required, current_user
 from models.exam import Exam
 from models.result import Result  # optional, if you want to check attempted exams
@@ -10,7 +10,7 @@ from models.result import Result
 from extensions import db
 from flask import request, flash, redirect, url_for, render_template
 from flask_login import login_required, current_user
-
+from models.enrollment import Enrollment
 
 # Blueprint for student routes
 student_bp = Blueprint("student", __name__, url_prefix="/student")
@@ -45,6 +45,16 @@ def take_exam(exam_id):
     if current_user.role != "student":
         return "Unauthorized", 403
 
+    enrollment = Enrollment.query.filter_by(
+    student_id=current_user.id,
+    exam_id=exam_id,
+    is_approved=True
+    ).first()
+
+    if not enrollment:
+        flash("You are not approved to take this exam yet.", "danger")
+        return redirect(url_for("student.available_exams"))
+    
     exam = Exam.query.get_or_404(exam_id)
 
     if request.method == "POST":
@@ -80,6 +90,42 @@ def take_exam(exam_id):
 
     # GET request — render exam
     return render_template("take_exam.html", exam=exam)
+
+# Student requests enrollment for an exam
+@student_bp.route("/request-enrollment/<int:exam_id>", methods=["POST"])
+@login_required
+def request_enrollment(exam_id):
+    if current_user.role != "student":
+        return "Unauthorized", 403
+
+    # check if already requested
+    existing = Enrollment.query.filter_by(student_id=current_user.id, exam_id=exam_id).first()
+    if existing:
+        flash("You have already requested/enrolled for this exam.", "info")
+        return redirect(url_for("student.available_exams"))
+
+    enrollment = Enrollment(student_id=current_user.id, exam_id=exam_id, status="pending")
+    db.session.add(enrollment)
+    db.session.commit()
+
+    flash("Enrollment request sent. Waiting for approval.", "success")
+    return redirect(url_for("student.available_exams"))
+
+
+@student_bp.route("/enroll_exam/<int:exam_id>", methods=["POST"])
+@login_required
+def enroll_exam(exam_id):
+    if current_user.role != "student":
+        flash("Only students can enroll in exams.", "danger")
+        return redirect(url_for("auth.login"))
+
+    enrollment = Enrollment(student_id=current_user.id, exam_id=exam_id, is_approved=False)
+    db.session.add(enrollment)
+    db.session.commit()
+
+    flash("Enrollment request sent. Wait for approval.", "success")
+    # Fix endpoint here:
+    return redirect(url_for("student.available_exams"))
 
 
 @student_bp.route("/submit-exam/<int:exam_id>", methods=["POST"])

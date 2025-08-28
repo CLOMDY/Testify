@@ -1,8 +1,12 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_required, current_user
 from extensions import db
 from models.exam import Exam
 from models.question import Question
+from models.enrollment import Enrollment
+from models.user import User
+from models.result import Result
+
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -14,7 +18,12 @@ def dashboard():
 @admin_bp.route("/manage-students")
 @login_required
 def manage_students():
-    return render_template("admin_manage_students.html")
+    if current_user.role != "admin":
+        return redirect(url_for("auth.login"))
+
+    exams = Exam.query.all()  # ✅ this will include updated enrollments
+    return render_template("admin_manage_students.html", exams=exams)
+
 
 # ✅ Manage exams with GET + POST
 @admin_bp.route("/manage-exams", methods=["GET", "POST"])
@@ -61,6 +70,8 @@ def manage_exams():
     # GET request: show form + existing exams
     exams = Exam.query.all()
     return render_template("admin_manage_exams.html", exams=exams)
+
+
 @admin_bp.route("/edit-exam/<int:exam_id>", methods=["POST"])
 @login_required
 def edit_exam(exam_id):
@@ -107,7 +118,120 @@ def delete_exam(exam_id):
     return redirect(url_for("admin.manage_exams"))
 
 
+# Show enrollment requests
+@admin_bp.route("/enrollments")
+@login_required
+def view_enrollments():
+    if current_user.role != "admin":
+        return "Unauthorized", 403
+
+    enrollments = Enrollment.query.all()
+    return render_template("admin_enrollments.html", enrollments=enrollments)
+
+
+# Approve enrollment
+@admin_bp.route("/approve-enrollment/<int:enrollment_id>", methods=["POST"])
+@login_required
+def approve_enrollment(enrollment_id):
+    if current_user.role != "admin":
+        return "Unauthorized", 403
+
+    enrollment = Enrollment.query.get_or_404(enrollment_id)
+    enrollment.is_approved = True   # ✅ update Boolean field
+    db.session.commit()
+
+    flash("Enrollment Accepted.", "success")
+    return redirect(url_for("admin.manage_students"))
+
+# Reject enrollment
+@admin_bp.route("/reject-enrollment/<int:enrollment_id>", methods=["POST"])
+@login_required
+def reject_enrollment(enrollment_id):
+    if current_user.role != "admin":
+        return "Unauthorized", 403
+
+    enrollment = Enrollment.query.get_or_404(enrollment_id)
+    enrollment.status = "rejected"
+    db.session.commit()
+    
+    flash("Enrollment rejected.", "warning")
+    return redirect(url_for("admin.view_enrollments"))
+
+
+@admin_bp.route("/approve_all/<int:exam_id>", methods=["POST"])
+def approve_all(exam_id):
+    enrollments = Enrollment.query.filter_by(exam_id=exam_id, is_approved=False).all()
+    for e in enrollments:
+        e.is_approved = True
+    db.session.commit()
+    flash("All students for this exam have been approved!", "success")
+    return redirect(url_for("admin.manage_students"))
+
+# Remove enrollment
+@admin_bp.route("/remove-enrollment/<int:enrollment_id>", methods=["POST"])
+@login_required
+def remove_enrollment(enrollment_id):
+    if current_user.role != "admin":
+        return "Unauthorized", 403
+
+    enrollment = Enrollment.query.get_or_404(enrollment_id)
+    db.session.delete(enrollment)
+    db.session.commit()
+
+    flash("Enrollment removed successfully!", "success")
+    return redirect(url_for("admin.manage_students"))
+
+
+# Admin results page
 @admin_bp.route("/results")
 @login_required
 def results():
-    return render_template("admin_results.html")
+    if current_user.role != "admin":
+        return redirect(url_for("auth.login"))
+
+    # Fetch all results with joined student and exam, in insertion order (FIFO)
+    results = (
+        db.session.query(Result, User, Exam)
+        .join(User, Result.student_id == User.id)
+        .join(Exam, Result.exam_id == Exam.id)
+        .order_by(Result.id)  # <-- FIFO order
+        .all()
+    )
+
+    # Group results by exam
+    results_by_exam = {}
+    for result, student, exam in results:
+        if exam.id not in results_by_exam:
+            results_by_exam[exam.id] = {
+                "exam_title": exam.title,
+                "results": []
+            }
+        results_by_exam[exam.id]["results"].append({
+            "student_name": student.name,
+            "score": result.score,
+            "total_questions": len(exam.questions)
+        })
+
+    return render_template("admin_results.html", results_by_exam=results_by_exam)
+
+# Leaderboard for a specific exam
+# admin_routes.py
+@admin_bp.route("/exam-leaderboard/<int:exam_id>")
+@login_required
+def exam_leaderboard(exam_id):
+    exam = Exam.query.get_or_404(exam_id)
+
+    # Fetch all results for this exam, ordered by score descending (so 1st is highest)
+    results = Result.query.filter_by(exam_id=exam.id).order_by(Result.score.desc()).all()
+
+    leaderboard = []
+    for i, r in enumerate(results, start=1):
+        student = User.query.get(r.student_id)
+        leaderboard.append({
+            "rank": int(i),  # ensure it's integer
+            "student_name": student.name,
+            "score": r.score,
+            "total_questions": len(exam.questions)
+        })
+
+    return render_template("admin_leaderboard.html", exam=exam, leaderboard=leaderboard)

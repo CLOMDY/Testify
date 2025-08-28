@@ -14,3 +14,6 @@ class User(db.Model, UserMixin):
     results = db.relationship(
         "Result", backref="student", cascade="all, delete-orphan", lazy=True
     )
+
+    enrollments = db.relationship("Enrollment", back_populates="student", lazy=True, cascade="all, delete-orphan")
+

@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Manage Students | Admin</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
+
 <body class="bg-light">
 
   <nav class="navbar navbar-dark bg-dark">
@@ -16,33 +18,60 @@
 
   <div class="container mt-4">
     <h3>Manage Students</h3>
-    <p class="text-muted">View, approve, or remove student accounts.</p>
+    <p class="text-muted">Approve or remove student enrollments, grouped by exam.</p>
 
-    <table class="table table-bordered table-striped mt-3">
-      <thead class="table-dark">
-        <tr>
-          <th>ID</th>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Example row -->
-        <tr>
-          <td>1</td>
-          <td>John Doe</td>
-          <td>john@example.com</td>
-          <td><span class="badge bg-success">Active</span></td>
-          <td>
-            <button class="btn btn-sm btn-warning">Suspend</button>
-            <button class="btn btn-sm btn-danger">Remove</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    {% for exam in exams %}
+    <div class="card mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">{{ exam.title }}</h5>
+        <form method="POST" action="{{ url_for('admin.approve_all', exam_id=exam.id) }}">
+          <button class="btn btn-sm btn-primary">Approve All</button>
+        </form>
+      </div>
+      <div class="card-body">
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Email</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for enrollment in exam.enrollments %}
+            <tr>
+              <td>{{ enrollment.student.name }}</td>
+              <td>{{ enrollment.student.email }}</td>
+              <td>
+                {% if enrollment.is_approved %}
+                <span class="badge bg-success">Approved</span>
+                {% else %}
+                <span class="badge bg-danger">Pending</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if not enrollment.is_approved %}
+                <form method="POST" action="{{ url_for('admin.approve_enrollment', enrollment_id=enrollment.id) }}"
+                  style="display:inline;">
+                  <button class="btn btn-sm btn-success">Approve</button>
+                </form>
+                {% endif %}
+                <form method="POST" action="{{ url_for('admin.remove_enrollment', enrollment_id=enrollment.id) }}"
+                  style="display:inline;">
+                  <button class="btn btn-sm btn-danger">Remove</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endfor %}
+
   </div>
 
 </body>
+
 </html>

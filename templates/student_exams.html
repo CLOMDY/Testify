@@ -38,11 +38,26 @@
           <td>{{ exam.title }}</td>
           <td>{{ exam.duration }}</td>
           <td>
+            {% set enrollment = exam.enrollments | selectattr("student_id", "equalto", current_user.id) | first %}
+
+            {% if not enrollment %}
+            <!-- Not enrolled -->
+            <form method="POST" action="{{ url_for('student.enroll_exam', exam_id=exam.id) }}">
+              <button class="btn btn-sm btn-primary">Enroll</button>
+            </form>
+
+            {% elif not enrollment.is_approved %}
+            <!-- Waiting for approval -->
+            <span class="badge bg-warning">Pending Approval</span>
+            {% else %}
+            <!-- Approved -->
             <a href="{{ url_for('student.take_exam', exam_id=exam.id) }}" class="btn btn-success btn-sm">Start</a>
+            {% endif %}
           </td>
         </tr>
         {% endfor %}
       </tbody>
+
     </table>
     {% else %}
     <div class="alert alert-secondary text-center">No exams available to attempt.</div>

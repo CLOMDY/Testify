@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Leaderboard | {{ exam.title }}</title>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        nav {
+            background-color: #343a40;
+            color: white;
+            padding: 0.75rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 0.4rem 0.75rem;
+            border-radius: 4px;
+        }
+
+        nav a.btn-danger {
+            background-color: #dc3545;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        h3 {
+            margin-bottom: 1rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            background-color: white;
+        }
+
+        th,
+        td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        thead th {
+            background-color: #343a40;
+            color: white;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tbody tr:hover {
+            background-color: #e9ecef;
+        }
+
+        /* Top 3 ranks */
+        tr.rank-1 {
+            background-color: gold !important;
+            color: black;
+            font-weight: bold;
+            transition: box-shadow 0.3s, transform 0.3s;
+        }
+
+        tr.rank-2 {
+            background-color: silver !important;
+            color: black;
+            font-weight: bold;
+            transition: box-shadow 0.3s, transform 0.3s;
+        }
+
+        tr.rank-3 {
+            background-color: #cd7f32 !important;
+            color: black;
+            font-weight: bold;
+            transition: box-shadow 0.3s, transform 0.3s;
+        }
+
+        /* Glow animation on hover for top 3 ranks */
+        tr.rank-1:hover {
+            box-shadow: 0 0 15px gold;
+            transform: scale(1.02);
+        }
+
+        tr.rank-2:hover {
+            box-shadow: 0 0 15px silver;
+            transform: scale(1.02);
+        }
+
+        tr.rank-3:hover {
+            box-shadow: 0 0 15px #cd7f32;
+            transform: scale(1.02);
+        }
+
+        .medal {
+            display: inline-block;
+            width: 1.2rem;
+            height: 1.2rem;
+            margin-right: 0.5rem;
+            vertical-align: middle;
+        }
+
+        .medal-text-shadow {
+            text-shadow: 0px 2px 8px #000;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <a href="{{ url_for('admin.results') }}">Back to Results</a>
+        <a href="{{ url_for('auth.logout') }}" class="btn-danger">Logout</a>
+    </nav>
+
+    <div class="container">
+        <h3>Leaderboard: {{ exam.title }}</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Student</th>
+                    <th>Score</th>
+                    <th>Percentage</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for res in leaderboard %}
+                <tr
+                    class="{% if res.rank|int == 1 %}rank-1{% elif res.rank|int == 2 %}rank-2{% elif res.rank|int == 3 %}rank-3{% endif %}">
+                    <td>{{ res.rank }}</td>
+                    <td>
+                        {% if res.rank|int == 1 %}
+                        <span class="medal-text-shadow">🥇</span>
+                        {% elif res.rank|int == 2 %}
+                        <span class="medal-text-shadow">🥈</span>
+                        {% elif res.rank|int == 3 %}
+                        <span class="medal-text-shadow">🥉</span>
+                        {% endif %}
+                        <span>{{ res.student_name }}</span>
+                    </td>
+
+                    <td>{{ res.score }}/{{ res.total_questions }}</td>
+                    <td>{{ ((res.score / res.total_questions) * 100) | round(2) }}%</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</body>
+
+</html>
