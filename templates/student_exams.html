@@ -39,6 +39,7 @@
           <td>{{ exam.duration }}</td>
           <td>
             {% set enrollment = exam.enrollments | selectattr("student_id", "equalto", current_user.id) | first %}
+            {% set result = exam.results | selectattr("student_id", "equalto", current_user.id) | first %}
 
             {% if not enrollment %}
             <!-- Not enrolled -->
@@ -49,11 +50,17 @@
             {% elif not enrollment.is_approved %}
             <!-- Waiting for approval -->
             <span class="badge bg-warning">Pending Approval</span>
+
+            {% elif result %}
+            <!-- Already attempted -->
+            <span class="badge bg-secondary">Completed</span>
+
             {% else %}
-            <!-- Approved -->
+            <!-- Approved and not attempted -->
             <a href="{{ url_for('student.take_exam', exam_id=exam.id) }}" class="btn btn-success btn-sm">Start</a>
             {% endif %}
           </td>
+
         </tr>
         {% endfor %}
       </tbody>
