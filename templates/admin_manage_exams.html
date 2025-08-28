@@ -70,6 +70,81 @@
           </div>
         </div>
       </div>
+      <!-- Edit Exam Modal -->
+      <div class="modal fade" id="editExamModal{{ exam.id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+          <div class="modal-content">
+            <form method="POST" action="{{ url_for('admin.edit_exam', exam_id=exam.id) }}">
+              <div class="modal-header">
+                <h5 class="modal-title">Edit Exam: {{ exam.title }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+
+              <div class="modal-body">
+                <!-- Exam Info -->
+                <div class="row mb-3">
+                  <div class="col-md-8">
+                    <label class="form-label">Exam Title</label>
+                    <input type="text" name="exam_title" class="form-control" value="{{ exam.title }}" required>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label">Exam Duration (minutes)</label>
+                    <input type="number" name="exam_duration" class="form-control" value="{{ exam.duration }}" required>
+                  </div>
+                </div>
+
+                <!-- Loop through questions -->
+                {% for q in exam.questions %}
+                <div class="card mb-3 shadow-sm">
+                  <div class="card-body">
+                    <h6 class="mb-3">Question {{ loop.index }}</h6>
+
+                    <div class="row g-3">
+                      <div class="col-12">
+                        <textarea name="question_{{ q.id }}" class="form-control" rows="2"
+                          required>{{ q.question_text }}</textarea>
+                      </div>
+
+                      <div class="col-md-6">
+                        <input type="text" name="option_a_{{ q.id }}" class="form-control" value="{{ q.option_a }}"
+                          placeholder="Option A" required>
+                      </div>
+                      <div class="col-md-6">
+                        <input type="text" name="option_b_{{ q.id }}" class="form-control" value="{{ q.option_b }}"
+                          placeholder="Option B" required>
+                      </div>
+                      <div class="col-md-6">
+                        <input type="text" name="option_c_{{ q.id }}" class="form-control" value="{{ q.option_c }}"
+                          placeholder="Option C" required>
+                      </div>
+                      <div class="col-md-6">
+                        <input type="text" name="option_d_{{ q.id }}" class="form-control" value="{{ q.option_d }}"
+                          placeholder="Option D" required>
+                      </div>
+
+                      <div class="col-md-4">
+                        <label class="form-label">Correct Answer</label>
+                        <select name="correct_{{ q.id }}" class="form-select" required>
+                          <option value="A" {% if q.correct_option=='A' %}selected{% endif %}>A</option>
+                          <option value="B" {% if q.correct_option=='B' %}selected{% endif %}>B</option>
+                          <option value="C" {% if q.correct_option=='C' %}selected{% endif %}>C</option>
+                          <option value="D" {% if q.correct_option=='D' %}selected{% endif %}>D</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+
+              <div class="modal-footer">
+                <button type="submit" class="btn btn-success">Save Changes</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
 
       <!-- Edit Modal code remains unchanged -->
       {% endfor %}

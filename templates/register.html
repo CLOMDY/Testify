@@ -11,13 +11,7 @@
     <div class="card shadow p-4 w-100" style="max-width: 400px;">
       <h3 class="text-center mb-3">Register</h3>
 
-      {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-          {% for category, msg in messages %}
-            <div class="alert alert-{{ category }}">{{ msg }}</div>
-          {% endfor %}
-        {% endif %}
-      {% endwith %}
+      
 
       <form method="POST">
         <div class="mb-3">

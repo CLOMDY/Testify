@@ -8,5 +8,5 @@ class Answer(db.Model):
     result_id = db.Column(db.Integer, db.ForeignKey("results.id"), nullable=False)
     question_id = db.Column(db.Integer, db.ForeignKey("questions.id"), nullable=False)
 
-    selected_option = db.Column(db.String(1), nullable=False)  # 'A', 'B', 'C', 'D'
+    selected_option = db.Column(db.String(1), nullable=True)   # allow unanswered # 'A', 'B', 'C', 'D'
     is_correct = db.Column(db.Boolean, nullable=False)
