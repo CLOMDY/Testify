@@ -25,7 +25,6 @@ online-exam-portal
 │     ├─ result.cpython-311.pyc
 │     ├─ user.cpython-311.pyc
 │     └─ __init__.cpython-311.pyc
-├─ models.py
 ├─ Procfile
 ├─ requirements.txt
 ├─ routes
