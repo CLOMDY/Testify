@@ -110,12 +110,14 @@
             transform: scale(1.02);
         }
 
-        .medal {
-            display: inline-block;
-            width: 1.2rem;
-            height: 1.2rem;
-            margin-right: 0.5rem;
-            vertical-align: middle;
+        .pass {
+            color: green;
+            font-weight: bold;
+        }
+
+        .fail {
+            color: red;
+            font-weight: bold;
         }
 
         .medal-text-shadow {
@@ -140,10 +142,12 @@
                     <th>Student</th>
                     <th>Score</th>
                     <th>Percentage</th>
+                    <th>Status</th> <!-- ✅ Added Pass/Fail Column -->
                 </tr>
             </thead>
             <tbody>
                 {% for res in leaderboard %}
+                {% set percentage = ((res.score / res.total_questions) * 100) %}
                 <tr
                     class="{% if res.rank|int == 1 %}rank-1{% elif res.rank|int == 2 %}rank-2{% elif res.rank|int == 3 %}rank-3{% endif %}">
                     <td>{{ res.rank }}</td>
@@ -157,9 +161,15 @@
                         {% endif %}
                         <span>{{ res.student_name }}</span>
                     </td>
-
                     <td>{{ res.score }}/{{ res.total_questions }}</td>
-                    <td>{{ ((res.score / res.total_questions) * 100) | round(2) }}%</td>
+                    <td>{{ percentage | round(2) }}%</td>
+                    <td>
+                        {% if percentage >= 35 %}
+                        <span class="pass" style="text-shadow: 0px 0px 13px  #0dff00;">Pass</span>
+                        {% else %}
+                        <span class="fail" style="text-shadow: 0px 0px 13px  #ff0000;">Fail</span>
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>

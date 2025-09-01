@@ -34,14 +34,23 @@
               <th>Student</th>
               <th>Score</th>
               <th>Percentage</th>
+              <th>Status</th>
             </tr>
           </thead>
           <tbody>
             {% for res in exam_data.results %}
+            {% set percentage = (res.score / res.total_questions) * 100 %}
             <tr>
               <td>{{ res.student_name }}</td>
               <td>{{ res.score }}/{{ res.total_questions }}</td>
-              <td>{{ ((res.score / res.total_questions) * 100) | round(2) }}%</td>
+              <td>{{ percentage | round(2) }}%</td>
+              <td>
+                {% if percentage > 35 %}
+                  <span class="badge bg-success">Pass</span>
+                {% else %}
+                  <span class="badge bg-danger">Fail</span>
+                {% endif %}
+              </td>
             </tr>
             {% endfor %}
           </tbody>
@@ -50,9 +59,7 @@
     </div>
     {% endfor %}
 
-
   </div>
 
 </body>
-
 </html>
