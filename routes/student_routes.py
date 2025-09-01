@@ -31,7 +31,7 @@ def available_exams():
         return "Unauthorized", 403
 
     # Fetch all exams
-    exams = Exam.query.all()
+    exams = Exam.query.filter_by(created_by=current_user.teacher_id).all()
 
     # Optionally, you can filter out exams already attempted by the student
     # attempted_exam_ids = [r.exam_id for r in Result.query.filter_by(user_id=current_user.id).all()]
@@ -46,7 +46,7 @@ def take_exam(exam_id):
         return "Unauthorized", 403
 
     enrollment = Enrollment.query.filter_by(
-    student_id=current_user.id,
+    user_id=current_user.id,
     exam_id=exam_id,
     is_approved=True
     ).first()
@@ -59,7 +59,7 @@ def take_exam(exam_id):
 
     if request.method == "POST":
         # 1️⃣ Create a Result for this student and exam
-        result = Result(student_id=current_user.id, exam_id=exam.id, score=0)
+        result = Result(user_id=current_user.id, exam_id=exam.id, score=0)
         db.session.add(result)
         db.session.commit()  # commit to get result.id
 
@@ -99,12 +99,12 @@ def request_enrollment(exam_id):
         return "Unauthorized", 403
 
     # check if already requested
-    existing = Enrollment.query.filter_by(student_id=current_user.id, exam_id=exam_id).first()
+    existing = Enrollment.query.filter_by(user_id=current_user.id, exam_id=exam_id).first()
     if existing:
         flash("You have already requested/enrolled for this exam.", "info")
         return redirect(url_for("student.available_exams"))
 
-    enrollment = Enrollment(student_id=current_user.id, exam_id=exam_id, status="pending")
+    enrollment = Enrollment(user_id=current_user.id, exam_id=exam_id, status="pending")
     db.session.add(enrollment)
     db.session.commit()
 
@@ -119,7 +119,7 @@ def enroll_exam(exam_id):
         flash("Only students can enroll in exams.", "danger")
         return redirect(url_for("auth.login"))
 
-    enrollment = Enrollment(student_id=current_user.id, exam_id=exam_id, is_approved=False)
+    enrollment = Enrollment(user_id=current_user.id, exam_id=exam_id, is_approved=False)
     db.session.add(enrollment)
     db.session.commit()
 
@@ -155,6 +155,6 @@ def results():
         return "Unauthorized", 403
 
     # Fetch all results of the current student
-    results = Result.query.filter_by(student_id=current_user.id).all()
+    results = Result.query.filter_by(user_id=current_user.id).all()
 
     return render_template("student_results.html", results=results)

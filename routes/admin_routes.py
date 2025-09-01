@@ -21,7 +21,7 @@ def manage_students():
     if current_user.role != "admin":
         return redirect(url_for("auth.login"))
 
-    exams = Exam.query.all()  # ✅ this will include updated enrollments
+    exams = Exam.query.filter_by(created_by=current_user.id).all()  # ✅ this will include updated enrollments
     return render_template("admin_manage_students.html", exams=exams)
 
 
@@ -32,18 +32,23 @@ def manage_exams():
     if request.method == "POST":
         exam_title = request.form.get("exam_title")
         exam_duration = request.form.get("exam_duration")
+        num_questions = request.form.get("num_questions")  # ✅ get number of questions
 
-        if not exam_title or not exam_duration:
-            flash("Exam title and duration are required", "danger")
+        if not exam_title or not exam_duration or not num_questions:
+            flash("Exam title, duration, and number of questions are required", "danger")
             return redirect(url_for("admin.manage_exams"))
 
         # Create new exam
-        new_exam = Exam(title=exam_title, duration=int(exam_duration))
+        new_exam = Exam(
+            title=exam_title,
+            duration=int(exam_duration),
+            created_by=current_user.id
+        )
         db.session.add(new_exam)
         db.session.commit()
 
-        # Add questions (optional: here just 1 question loop as example)
-        for i in range(1, 6):  # you can extend this
+        # ✅ loop dynamically
+        for i in range(1, int(num_questions) + 1):
             q_text = request.form.get(f"question_{i}")
             optA = request.form.get(f"optionA_{i}")
             optB = request.form.get(f"optionB_{i}")
@@ -67,8 +72,9 @@ def manage_exams():
         flash("Exam created successfully!", "success")
         return redirect(url_for("admin.manage_exams"))
 
+
     # GET request: show form + existing exams
-    exams = Exam.query.all()
+    exams = Exam.query.filter_by(created_by=current_user.id).all()
     return render_template("admin_manage_exams.html", exams=exams)
 
 
@@ -189,30 +195,35 @@ def results():
     if current_user.role != "admin":
         return redirect(url_for("auth.login"))
 
-    # Fetch all results with joined student and exam, in insertion order (FIFO)
-    results = (
-        db.session.query(Result, User, Exam)
-        .join(User, Result.student_id == User.id)
-        .join(Exam, Result.exam_id == Exam.id)
-        .order_by(Result.id)  # <-- FIFO order
-        .all()
-    )
+    # ✅ Fetch only exams created by the logged-in teacher
+    exams = Exam.query.filter_by(created_by=current_user.id).all()
 
-    # Group results by exam
     results_by_exam = {}
-    for result, student, exam in results:
-        if exam.id not in results_by_exam:
-            results_by_exam[exam.id] = {
-                "exam_title": exam.title,
-                "results": []
-            }
-        results_by_exam[exam.id]["results"].append({
-            "student_name": student.name,
-            "score": result.score,
-            "total_questions": len(exam.questions)
-        })
+    for exam in exams:
+        # ✅ Fetch only this teacher's students who attempted the exam
+        results = (
+            db.session.query(Result, User)
+            .join(User, Result.user_id == User.id)
+            .filter(User.teacher_id == current_user.id)
+            .filter(Result.exam_id == exam.id)
+            .order_by(Result.id)  # FIFO
+            .all()
+        )
+
+        results_by_exam[exam.id] = {
+            "exam_title": exam.title,
+            "results": [
+                {
+                    "student_name": student.name,
+                    "score": result.score,
+                    "total_questions": len(exam.questions)
+                }
+                for result, student in results
+            ],
+        }
 
     return render_template("admin_results.html", results_by_exam=results_by_exam)
+
 
 # Leaderboard for a specific exam
 # admin_routes.py
@@ -221,14 +232,25 @@ def results():
 def exam_leaderboard(exam_id):
     exam = Exam.query.get_or_404(exam_id)
 
-    # Fetch all results for this exam, ordered by score descending (so 1st is highest)
-    results = Result.query.filter_by(exam_id=exam.id).order_by(Result.score.desc()).all()
+    # ✅ Security check: only the teacher who created this exam can view it
+    if exam.created_by != current_user.id:
+        flash("Unauthorized access to this leaderboard!", "danger")
+        return redirect(url_for("admin.results"))
+
+    # ✅ Fetch only this teacher’s students’ results
+    results = (
+        db.session.query(Result, User)
+        .join(User, Result.user_id == User.id)
+        .filter(Result.exam_id == exam.id)
+        .filter(User.teacher_id == current_user.id)
+        .order_by(Result.score.desc())
+        .all()
+    )
 
     leaderboard = []
-    for i, r in enumerate(results, start=1):
-        student = User.query.get(r.student_id)
+    for i, (r, student) in enumerate(results, start=1):
         leaderboard.append({
-            "rank": int(i),  # ensure it's integer
+            "rank": i,
             "student_name": student.name,
             "score": r.score,
             "total_questions": len(exam.questions)

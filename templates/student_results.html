@@ -26,7 +26,6 @@
         <tr>
           <th>#</th>
           <th>Exam Title</th>
-          <th>Subject</th>
           <th>Score</th>
           <th>Status</th>
         </tr>
@@ -37,9 +36,7 @@
         <tr>
           <td>{{ loop.index }}</td>
           <td>{{ res.exam.title }}</td>
-          <td> <!-- optional, if you have a subject field in Exam -->
-            {% if res.exam.subject %}{{ res.exam.subject }}{% else %}-{% endif %}
-          </td>
+          
           <td>{{ res.score }} / {{ res.exam.questions|length }}</td>
           <td>
             {% set pass_marks = (res.exam.questions|length * 0.35) | round(0, 'ceil') %}

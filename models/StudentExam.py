@@ -5,7 +5,7 @@ class StudentExam(db.Model):
     __tablename__ = "student_exams"
 
     id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     exam_id = db.Column(db.Integer, db.ForeignKey("exams.id"), nullable=False)
     is_approved = db.Column(db.Boolean, default=False)  # approval status
 

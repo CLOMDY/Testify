@@ -11,7 +11,7 @@
 
   <nav class="navbar navbar-dark bg-dark">
     <div class="container-fluid">
-      <a class="navbar-brand" href="{{ url_for('admin.dashboard') }}">Admin Dashboard</a>
+      <a class="navbar-brand" href="{{ url_for('admin.dashboard') }}">Teacher Dashboard</a>
       <a href="{{ url_for('auth.logout') }}" class="btn btn-danger">Logout</a>
     </div>
   </nav>
@@ -41,8 +41,8 @@
           <tbody>
             {% for enrollment in exam.enrollments %}
             <tr>
-              <td>{{ enrollment.student.name }}</td>
-              <td>{{ enrollment.student.email }}</td>
+              <td>{{ enrollment.user.name }}</td>
+              <td>{{ enrollment.user.email }}</td>
               <td>
                 {% if enrollment.is_approved %}
                 <span class="badge bg-success">Approved</span>
@@ -63,6 +63,7 @@
                 </form>
               </td>
             </tr>
+
             {% endfor %}
           </tbody>
         </table>

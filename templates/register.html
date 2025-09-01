@@ -12,12 +12,25 @@
   <div class="container d-flex justify-content-center align-items-center vh-100">
     <div class="card shadow p-4 w-100" style="max-width: 400px;">
       <h3 class="text-center mb-3">Register</h3>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      {% for category, msg in messages %}
+      {% if category == 'danger' %}
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        {{ msg }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+      {% endif %}
+      {% endfor %}
+      {% endif %}
+      {% endwith %}
 
       <form method="POST">
         <div class="mb-3">
-          <label>Name</label>
-          <input type="text" name="name" class="form-control" required>
+          <label for="name" class="form-label">Full Name</label>
+          <input type="text" class="form-control" name="name" required>
         </div>
+
         <div class="mb-3">
           <label>Email</label>
           <input type="email" name="email" class="form-control" required>
@@ -27,11 +40,27 @@
           <input type="password" name="password" class="form-control" required>
         </div>
         <div class="mb-3">
-          <label>Role</label>
-          <select name="role" class="form-control" required>
-            <option value="student">Student</option>
-            <option value="admin">Admin</option>
-          </select>
+          <label class="form-label d-block">Role</label>
+          <div class="d-flex justify-content-between">
+
+            <!-- Admin -->
+            <div class="flex-fill me-2" style="max-width:48%;">
+              <input type="radio" class="btn-check" name="role" id="admin" value="admin" required>
+              <label class="btn btn-outline-primary w-100" for="admin">Admin</label>
+            </div>
+
+            <!-- Student -->
+            <div class="flex-fill ms-2" style="max-width:48%;">
+              <input type="radio" class="btn-check" name="role" id="student" value="student" required>
+              <label class="btn btn-outline-primary w-100" for="student">Student</label>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="mb-3 student-key-field" style="display:none;">
+          <label>Teacher Key</label>
+          <input type="text" name="teacher_key" class="form-control">
         </div>
         <button class="btn btn-success w-100" type="submit">Register</button>
       </form>
@@ -41,6 +70,14 @@
       </div>
     </div>
   </div>
+  <script>
+    document.querySelectorAll("input[name='role']").forEach(radio => {
+      radio.addEventListener("change", function () {
+        document.querySelector(".student-key-field").style.display =
+          this.value === "student" ? "block" : "none";
+      });
+    });
+  </script>
 
 </body>
 

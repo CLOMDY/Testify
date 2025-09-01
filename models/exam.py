@@ -5,20 +5,14 @@ class Exam(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
-    duration = db.Column(db.Integer, nullable=False, default=30)  # in minutes
+    duration = db.Column(db.Integer, nullable=False, default=30)
 
-    # Delete cascade
-    questions = db.relationship(
-        "Question", backref="exam", cascade="all, delete-orphan", lazy=True
-    )
-    results = db.relationship(
-        "Result", backref="exam", cascade="all, delete-orphan", lazy=True
-    )
+    created_by = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
 
-    # 🔥 Use back_populates instead of duplicate backref
-    enrollments = db.relationship(
-        "Enrollment",
-        back_populates="exam",
-        lazy=True,
-        cascade="all, delete-orphan"
-    )
+    # Relationships
+    questions = db.relationship("Question", backref="exam", cascade="all, delete-orphan", lazy=True)
+    results = db.relationship("Result", backref="exam", cascade="all, delete-orphan", lazy=True)
+    enrollments = db.relationship("Enrollment", back_populates="exam", lazy=True, cascade="all, delete-orphan")
+
+    # ✅ Explicit back_populates instead of backref
+    creator = db.relationship("User", back_populates="exams")

@@ -6,18 +6,20 @@ online-exam-portal
 ├─ config.py
 ├─ extensions.py
 ├─ instance
-│  ├─ config.py
 │  ├─ db.sqlite3
 │  └─ exam_portal.db
 ├─ models
 │  ├─ answer.py
+│  ├─ enrollment.py
 │  ├─ exam.py
 │  ├─ question.py
 │  ├─ result.py
+│  ├─ StudentExam.py
 │  ├─ user.py
 │  ├─ __init__.py
 │  └─ __pycache__
 │     ├─ answer.cpython-311.pyc
+│     ├─ enrollment.cpython-311.pyc
 │     ├─ exam.cpython-311.pyc
 │     ├─ question.cpython-311.pyc
 │     ├─ result.cpython-311.pyc
@@ -42,19 +44,17 @@ online-exam-portal
 │  └─ js
 │     └─ timer.js
 ├─ templates
-│  ├─ add_exam.html
-│  ├─ add_questions.html
 │  ├─ admin_dashboard.html
+│  ├─ admin_leaderboard.html
 │  ├─ admin_manage_exams.html
 │  ├─ admin_manage_students.html
 │  ├─ admin_results.html
-│  ├─ base.html
 │  ├─ landing.html
-│  ├─ leaderboard.html
 │  ├─ login.html
 │  ├─ register.html
-│  ├─ results.html
 │  ├─ student_dashboard.html
+│  ├─ student_exams.html
+│  ├─ student_results.html
 │  └─ take_exam.html
 ├─ utils
 │  ├─ evaluation.py

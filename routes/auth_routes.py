@@ -3,7 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, logout_user, login_required, current_user
 from extensions import db   # ✅ use the same db
 from models import User
-
+import uuid
 
 
 # Blueprint for authentication routes
@@ -16,16 +16,20 @@ def login():
         password = request.form["password"]
 
         user = User.query.filter_by(email=email).first()
-        if user and check_password_hash(user.password, password):
+        if user and user.check_password(password):  # ✅ use method in User model
             login_user(user)
+
+            # Redirect based on role
             if user.role == "admin":
                 return redirect(url_for("admin.dashboard"))
             else:
                 return redirect(url_for("student.dashboard"))
-        else:
-            flash("❌ Wrong email or password!", "danger")  # flash only on error
+
+        flash("Invalid email or password", "danger")
 
     return render_template("login.html")
+
+
 
 
 @auth_bp.route("/delete-account", methods=["POST"])
@@ -49,17 +53,33 @@ def delete_account():
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
-        name = request.form["name"]
-        email = request.form["email"]
-        password = generate_password_hash(request.form["password"])
-        role = request.form["role"]
+        name = request.form.get("name")   # ✅ get name from form
+        email = request.form.get("email")
+        password = request.form.get("password")
+        role = request.form.get("role")
 
-        # create new user
-        new_user = User(name=name, email=email, password=password, role=role)
+        new_user = User(name=name, email=email, role=role)  # ✅ add name
+        new_user.set_password(password)
+
+        if role == "admin":
+            # ✅ generate a permanent teacher key
+            new_user.teacher_key = str(uuid.uuid4())[:8]  
+
+        elif role == "student":
+            teacher_key = request.form.get("teacher_key")
+            teacher = User.query.filter_by(teacher_key=teacher_key, role="admin").first()
+
+            if not teacher:
+                flash("Invalid teacher key!", "danger")
+                return redirect(url_for("auth.register"))
+
+            # ✅ link student with admin
+            new_user.teacher_id = teacher.id
+
         db.session.add(new_user)
         db.session.commit()
 
-        flash("Account created successfully!", "success")
+        flash("Registration successful! Please login.", "success")
         return redirect(url_for("auth.login"))
 
     return render_template("register.html")

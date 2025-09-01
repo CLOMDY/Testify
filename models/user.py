@@ -1,19 +1,31 @@
 from extensions import db
+from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 
 class User(db.Model, UserMixin):
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password = db.Column(db.String(200), nullable=False)
-    role = db.Column(db.String(20), nullable=False)  # 'admin' or 'student'
+    name = db.Column(db.String(100), nullable=False)  # required field
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    password_hash = db.Column(db.String(200), nullable=False)
+    role = db.Column(db.String(20), nullable=False)  # "admin" or "student"
 
-    # ✅ Delete results (and their answers) when user is deleted
-    results = db.relationship(
-        "Result", backref="student", cascade="all, delete-orphan", lazy=True
-    )
+    # For admins
+    teacher_key = db.Column(db.String(50), unique=True, nullable=True)
 
-    enrollments = db.relationship("Enrollment", back_populates="student", lazy=True, cascade="all, delete-orphan")
+    # For students (link to their teacher/admin)
+    teacher_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    teacher = db.relationship("User", remote_side=[id], backref="students")
 
+    # Enrollments
+    enrollments = db.relationship("Enrollment", back_populates="user", cascade="all, delete-orphan")
+
+    # Exams created by the user (admins/teachers)
+    exams = db.relationship("Exam", back_populates="creator", cascade="all, delete-orphan")
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)

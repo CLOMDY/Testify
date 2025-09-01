@@ -38,8 +38,9 @@
           <td>{{ exam.title }}</td>
           <td>{{ exam.duration }}</td>
           <td>
-            {% set enrollment = exam.enrollments | selectattr("student_id", "equalto", current_user.id) | first %}
-            {% set result = exam.results | selectattr("student_id", "equalto", current_user.id) | first %}
+            {% set enrollment = exam.enrollments | selectattr("user_id", "equalto", current_user.id) | first %}
+            {% set result = exam.results | selectattr("user_id", "equalto", current_user.id) | first %}
+
 
             {% if not enrollment %}
             <!-- Not enrolled -->
