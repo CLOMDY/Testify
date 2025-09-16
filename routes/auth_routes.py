@@ -30,24 +30,21 @@ def login():
     return render_template("login.html")
 
 
-
-
 @auth_bp.route("/delete-account", methods=["POST"])
 @login_required
 def delete_account():
     from flask_login import current_user
 
     user = current_user
-    user_id = user.id
 
-    # Delete user from DB
     db.session.delete(user)
     db.session.commit()
 
     logout_user()
-
     flash("Your account has been deleted successfully.", "info")
     return redirect(url_for("auth.register"))
+
+
 
 
 @auth_bp.route("/register", methods=["GET", "POST"])
