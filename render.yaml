@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: exam-portal
+    env: python
+    pythonVersion: 3.11
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn wsgi:app
+    envVars:
+      - key: DATABASE_URL
+        value: postgresql://testify_db_user:bDu34qhhVGlGXliL9aWpy1HpxRYqgQQv@dpg-d34hr8fdiees73es2uvg-a/testify_db
+
+# You can omit the `databases:` section since the DB is already created manually on Render
+databases:
+  - name: Testify_DB              # <-- must match the service you created
+    databaseName: testify_db      # <-- your actual DB name
+    user: testify_db_user          # <-- DB user you got from Render

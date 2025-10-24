@@ -7,12 +7,31 @@ class Exam(db.Model):
     title = db.Column(db.String(100), nullable=False)
     duration = db.Column(db.Integer, nullable=False, default=30)
 
-    created_by = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    created_by = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False
+    )
 
     # Relationships
-    questions = db.relationship("Question", backref="exam", cascade="all, delete-orphan", lazy=True)
-    results = db.relationship("Result", backref="exam", cascade="all, delete-orphan", lazy=True)
-    enrollments = db.relationship("Enrollment", back_populates="exam", lazy=True, cascade="all, delete-orphan")
+    questions = db.relationship(
+        "Question",
+        backref="exam",
+        cascade="all, delete-orphan",
+        lazy=True
+    )
+    results = db.relationship(
+        "Result",
+        backref="exam",
+        cascade="all, delete-orphan",
+        lazy=True
+    )
+    enrollments = db.relationship(
+        "Enrollment",
+        back_populates="exam",
+        cascade="all, delete-orphan",
+        lazy=True
+    )
 
-    # ✅ Explicit back_populates instead of backref
+    # ✅ Explicit back_populates
     creator = db.relationship("User", back_populates="exams")

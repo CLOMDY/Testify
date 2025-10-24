@@ -1,11 +1,14 @@
 from extensions import db
 
-
 class Question(db.Model):
     __tablename__ = "questions"
 
     id = db.Column(db.Integer, primary_key=True)
-    exam_id = db.Column(db.Integer, db.ForeignKey("exams.id"), nullable=False)
+    exam_id = db.Column(
+        db.Integer,
+        db.ForeignKey("exams.id", ondelete="CASCADE"),
+        nullable=False
+    )
     question_text = db.Column(db.String(500), nullable=False)
 
     option_a = db.Column(db.String(200), nullable=False)
@@ -14,3 +17,11 @@ class Question(db.Model):
     option_d = db.Column(db.String(200), nullable=False)
 
     correct_option = db.Column(db.String(1), nullable=False)  # 'A', 'B', 'C', 'D'
+
+    # ✅ Cascade answers when question is deleted
+    answers = db.relationship(
+        "Answer",
+        backref="question",
+        cascade="all, delete-orphan",
+        lazy=True
+    )
